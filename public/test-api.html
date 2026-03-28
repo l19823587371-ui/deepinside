@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试人格分析API</title>
+</head>
+<body>
+    <button onclick="testAPI()">测试API</button>
+    <pre id="result"></pre>
+
+    <script>
+        async function testAPI() {
+            const res = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    keywords: '敏感、爱思考、内向',
+                    struggle: '最近总觉得别人不喜欢我，但不知道是不是想多了',
+                    question: '怎么才能不在意别人的看法'
+                })
+            });
+            const data = await res.json();
+            document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+</html>
