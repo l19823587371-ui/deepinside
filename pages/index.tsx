@@ -5,98 +5,144 @@ export default function Home() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    keywords: '',
-    struggle: '',
-    question: ''
+    mood: '',
+    moodDetail: '',
+    fields: [] as string[],
+    story: ''
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();  // 这行必须存在，阻止页面刷新
-  setLoading(true);
+  const moods = ['焦虑', '迷茫', '疲惫', '孤独'];
+  const fieldOptions = ['爱情', '事业', '家庭', '友情'];
 
-  try {
-    console.log('提交的数据：', formData);  // 调试用
-    
+  const handleFieldChange = (field: string) => {
+    setFormData(prev => {
+      const newFields = prev.fields.includes(field)
+        ? prev.fields.filter(f => f !== field)
+        : [...prev.fields, field];
+      // 如果选了“全部”，清空其他，只保留“全部”
+      if (field === '全部') {
+        return { ...prev, fields: newFields.includes('全部') ? ['全部'] : [] };
+      }
+      // 如果选了其他，去掉“全部”
+      if (newFields.includes(field) && prev.fields.includes('全部')) {
+        return { ...prev, fields: newFields.filter(f => f !== '全部') };
+      }
+      return { ...prev, fields: newFields };
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (formData.fields.length === 0) {
+      alert('请至少选择一个分析领域');
+      return;
+    }
+    setLoading(true);
+
     const res = await fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
+      body: JSON.stringify({
+        mood: formData.mood,
+        moodDetail: formData.moodDetail,
+        fields: formData.fields,
+        story: formData.story
+      })
     });
 
-    console.log('响应状态：', res.status);  // 调试用
-    
     const data = await res.json();
-    console.log('返回的数据：', data);  // 调试用
-
-    // 检查数据是否存在
-    if (data && data.report) {
-      router.push({
-        pathname: '/report',
-        query: { data: JSON.stringify(data.report) }
-      });
-    } else {
-      console.error('没有收到 report 数据');
-      alert('生成报告失败，请重试');
-      setLoading(false);
-    }
-  } catch (error) {
-    console.error('请求失败：', error);
-    alert('网络错误，请重试');
-    setLoading(false);
-  }
-};
+    router.push({
+      pathname: '/report',
+      query: { data: JSON.stringify(data.report) }
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-slate-800 mb-2">
-            DEEPINSIDE
-          </h1>
+          <h1 className="text-4xl font-bold text-slate-800 mb-2">DEEPINSIDE</h1>
           <p className="text-slate-500">你的底层代码解析器</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* 问题1：整体状态 */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                用三个词描述自己
+                1. 你现在的整体状态？
               </label>
+              <div className="flex flex-wrap gap-3 mb-3">
+                {moods.map(m => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, mood: m })}
+                    className={`px-4 py-2 rounded-full border transition ${
+                      formData.mood === m
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-slate-700 border-slate-300 hover:border-blue-400'
+                    }`}
+                  >
+                    {m}
+                  </button>
+                ))}
+              </div>
               <input
                 type="text"
-                required
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="例如：敏感、爱思考、内向"
-                value={formData.keywords}
-                onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg"
+                placeholder="可以多说一句（可选）"
+                value={formData.moodDetail}
+                onChange={(e) => setFormData({ ...formData, moodDetail: e.target.value })}
               />
             </div>
 
+            {/* 问题2：选择分析领域 */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                最近让你困惑或难受的一件事
+                2. 你最想分析哪个领域？
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {fieldOptions.map(f => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => handleFieldChange(f)}
+                    className={`px-4 py-2 rounded-full border transition ${
+                      formData.fields.includes(f)
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white text-slate-700 border-slate-300 hover:border-blue-400'
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => handleFieldChange('全部')}
+                  className={`px-4 py-2 rounded-full border transition ${
+                    formData.fields.includes('全部')
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-slate-700 border-slate-300 hover:border-blue-400'
+                  }`}
+                >
+                  全部
+                </button>
+              </div>
+            </div>
+
+            {/* 问题3：具体事件 */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                3. 针对你选的领域，描述一件具体的事
               </label>
               <textarea
                 required
                 rows={3}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="简单描述一下..."
-                value={formData.struggle}
-                onChange={(e) => setFormData({ ...formData, struggle: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                你最想解决的问题
-              </label>
-              <input
-                type="text"
-                required
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="例如：怎么才能不在意别人的看法"
-                value={formData.question}
-                onChange={(e) => setFormData({ ...formData, question: e.target.value })}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg"
+                placeholder="例：我总担心 ta 会离开我"
+                value={formData.story}
+                onChange={(e) => setFormData({ ...formData, story: e.target.value })}
               />
             </div>
 

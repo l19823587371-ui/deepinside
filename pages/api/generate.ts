@@ -7,16 +7,19 @@ const client = new OpenAI({
   baseURL: 'https://api.deepseek.com',
 });
 
-// ✅ 这里是 type ResponseData（在文件顶部，函数之前）
 type ResponseData = {
   report?: {
-    tag: string;           // 新增：人格标签
-    personality: string;
-    pattern: string;
-    blindspot: string;
-    advice: string;
-    oneSentence: string;
-    bonus?: string;        // 新增：自由输出
+    global: {
+      tag: string;
+      oneSentence: string;
+      bonus: string;
+    };
+    fields: {
+      爱情?: { pattern: string; insight: string; action: string };
+      事业?: { pattern: string; insight: string; action: string };
+      家庭?: { pattern: string; insight: string; action: string };
+      友情?: { pattern: string; insight: string; action: string };
+    };
   };
   error?: string;
 };
@@ -30,11 +33,11 @@ export default async function handler(
     return res.status(405).json({ error: '只支持 POST 请求' });
   }
 
-  // 获取用户输入
-  const { keywords, struggle, question } = req.body;
+  // ✅ 新版输入字段
+  const { mood, moodDetail, fields, story } = req.body;
 
   // 简单校验
-  if (!keywords || !struggle || !question) {
+  if (!mood || !fields || fields.length === 0 || !story) {
     return res.status(400).json({ error: '缺少必要字段' });
   }
 
@@ -45,26 +48,45 @@ export default async function handler(
       messages: [
         {
           role: 'system',
-          content: `你是一位敏锐的人格分析师。你的风格：温柔但直指本质，不灌鸡汤，不评价好坏，只描述"这个人可能正在经历什么"。
+          content: `你是一位极其敏锐的人格分析师。你的任务是：根据用户提供的【整体状态】+【选择分析的领域】+【一件具体的事】，给出深度、场景化、不套话的分析。
 
-根据用户提供的信息，返回一个 JSON 对象，不要返回任何其他文字。
+【重要规则】
+1. 只返回一个合法的 JSON 对象，不要返回任何其他文字、解释、Markdown。
+2. 用户选择的领域可能是：爱情、事业、家庭、友情、全部。
+3. 如果用户选了"全部"，你按优先级输出：爱情 → 事业 → 家庭（友情可选）。
+4. 每个领域下，只输出以下三个字段（不要多，不要少）：
+   - pattern：这个人在该领域中最核心的行为模式（一句话，不超过30字）
+   - insight：一个可能没意识到的深层需求或恐惧（一句话，不超过35字）
+   - action：一条非常具体、可执行的小建议（一句话，不超过40字）
 
-JSON 格式如下：
+5. 除此之外，必须额外输出三个全局字段：
+   - tag：用4-8个字给这个人一个标签（如"高敏感型自我审判者"）
+   - oneSentence：一句能直接戳中这个人的话（不超过25字）
+   - bonus：如果你觉得有一句"不得不说的话"不在上述结构里，放在这里；如果没有，返回空字符串
+
+【输出 JSON 格式（严格按这个结构）】
 {
-  "tag": "用 4-8 个字给这个人一个标签，像'高敏感型自我审判者'或'清醒的逃避者'，让人想截图发朋友圈",
-  "personality": "一句话概括这个人的人格核心（不超过30字）",
-  "pattern": "这个人总是______，因为______（填空式，不超过40字）",
-  "blindspot": "这个人可能没意识到______（不超过35字）",
-  "advice": "一条非常具体、可执行的小建议（不超过45字）",
-  "oneSentence": "一句能直接戳中这个人的话（不超过25字）",
-  "bonus": "如果以上字段都不够，你觉得有一句不得不说的话，放在这里。可以不安全、不完美，但要真实、锋利。如果没有，就返回空字符串"
-}`
+  "global": {
+    "tag": "字符串",
+    "oneSentence": "字符串",
+    "bonus": "字符串"
+  },
+  "fields": {
+    "爱情": { "pattern": "字符串", "insight": "字符串", "action": "字符串" },
+    "事业": { "pattern": "字符串", "insight": "字符串", "action": "字符串" },
+    "家庭": { "pattern": "字符串", "insight": "字符串", "action": "字符串" },
+    "友情": { "pattern": "字符串", "insight": "字符串", "action": "字符串" }
+  }
+}
+
+注意：用户没选的领域，对应的值可以是 null。
+现在，根据用户输入开始分析。`
         },
         {
           role: 'user',
-          content: `用户用三个词形容自己：${keywords}
-最近让 ta 困惑或难受的事：${struggle}
-ta 最想解决的问题：${question}`
+          content: `用户整体状态：${mood}。补充说明：${moodDetail || '无'}。
+用户想分析的领域：${fields.join('、')}。
+具体事件：${story}`
         }
       ],
       temperature: 0.7,
@@ -72,8 +94,24 @@ ta 最想解决的问题：${question}`
 
     const content = response.choices[0].message.content;
     
-    // 解析 JSON
-    const report = JSON.parse(content || '{}');
+    // 解析 JSON，带 fallback
+    let report;
+    try {
+      report = JSON.parse(content || '{}');
+      // 如果缺少 global 或 fields，手动补一个默认结构
+      if (!report.global) {
+        report.global = { tag: '探索者', oneSentence: '你比自己想象的更复杂', bonus: '' };
+      }
+      if (!report.fields) {
+        report.fields = {};
+      }
+    } catch (e) {
+      // 如果 AI 完全不听话，返回一个安全报告
+      report = {
+        global: { tag: '深度思考者', oneSentence: '你正在成为更完整的自己', bonus: '' },
+        fields: {}
+      };
+    }
 
     return res.status(200).json({ report });
   } catch (error) {
