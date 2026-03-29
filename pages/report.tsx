@@ -1,28 +1,20 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
-interface DomainInsight {
-  pattern: string;
-  fear: string;
-  advice: string;
-}
-
 interface ReportData {
-  global: {
+  global?: {
     tag: string;
     oneSentence: string;
     bonus: string;
   };
-  personality: string;
-  pattern: string;
-  blindspot: string;
-  advice: string;
-  domain_insights?: {
-    爱情?: DomainInsight;
-    事业?: DomainInsight;
-    家庭?: DomainInsight;
-    友情?: DomainInsight;
-  };
+  personality?: string;
+  pattern?: string;
+  blindspot?: string;
+  advice?: string;
+  oneSentence?: string;
+  bonus?: string;
+  // 兼容旧版扁平结构
+  tag?: string;
 }
 
 export default function Report() {
@@ -35,7 +27,23 @@ export default function Report() {
     if (data && typeof data === 'string') {
       try {
         const parsed = JSON.parse(data);
-        setReport(parsed);
+        // 统一转换成新版结构
+        if (parsed.global) {
+          setReport(parsed);
+        } else {
+          // 兼容旧版扁平结构
+          setReport({
+            global: {
+              tag: parsed.tag || '探索者',
+              oneSentence: parsed.oneSentence || '',
+              bonus: parsed.bonus || ''
+            },
+            personality: parsed.personality,
+            pattern: parsed.pattern,
+            blindspot: parsed.blindspot,
+            advice: parsed.advice
+          });
+        }
       } catch (e) {
         console.error('解析报告失败', e);
       }
@@ -56,16 +64,19 @@ export default function Report() {
     );
   }
 
-  const { global, personality, pattern, blindspot, advice, domain_insights } = report;
+  const { global, personality, pattern, blindspot, advice } = report;
+  const tag = global?.tag || report.tag || '探索者';
+  const oneSentence = global?.oneSentence || report.oneSentence || '';
+  const bonus = global?.bonus || report.bonus || '';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4">
       <div className="max-w-3xl mx-auto">
         {/* 人格标签 */}
-        {global?.tag && (
+        {tag && (
           <div className="text-center mb-6">
             <span className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-full text-lg font-bold shadow-lg">
-              {global.tag}
+              {tag}
             </span>
           </div>
         )}
@@ -77,83 +88,54 @@ export default function Report() {
           <p className="text-slate-500">看见你未曾看见的自己</p>
         </div>
 
-        {/* ===== 基础模块（始终显示） ===== */}
-        <div className="space-y-4 mb-8">
-          <HitCard
-            title="人格核心"
-            content={personality}
-            onHit={() => onHit('人格核心', personality)}
-            hit={hit === '人格核心'}
-          />
-          <HitCard
-            title="行为模式"
-            content={pattern}
-            onHit={() => onHit('行为模式', pattern)}
-            hit={hit === '行为模式'}
-          />
-          <HitCard
-            title="可能的盲点"
-            content={blindspot}
-            onHit={() => onHit('可能的盲点', blindspot)}
-            hit={hit === '可能的盲点'}
-          />
-          <HitCard
-            title="给你的建议"
-            content={advice}
-            onHit={() => onHit('给你的建议', advice)}
-            hit={hit === '给你的建议'}
-          />
+        <div className="space-y-4">
+          {personality && (
+            <HitCard
+              title="人格核心"
+              content={personality}
+              onHit={() => onHit('人格核心', personality)}
+              hit={hit === '人格核心'}
+            />
+          )}
+          {pattern && (
+            <HitCard
+              title="行为模式"
+              content={pattern}
+              onHit={() => onHit('行为模式', pattern)}
+              hit={hit === '行为模式'}
+            />
+          )}
+          {blindspot && (
+            <HitCard
+              title="可能的盲点"
+              content={blindspot}
+              onHit={() => onHit('可能的盲点', blindspot)}
+              hit={hit === '可能的盲点'}
+            />
+          )}
+          {advice && (
+            <HitCard
+              title="给你的建议"
+              content={advice}
+              onHit={() => onHit('给你的建议', advice)}
+              hit={hit === '给你的建议'}
+            />
+          )}
         </div>
 
-        {/* ===== 场景化洞察（domain_insights） ===== */}
-        {domain_insights && Object.keys(domain_insights).length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold text-slate-700 mb-4 border-l-4 border-blue-500 pl-3">
-              场景深度分析
-            </h2>
-            {Object.entries(domain_insights).map(([domain, insight]) => (
-              <div key={domain} className="mb-6 bg-white rounded-xl shadow-md overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-3">
-                  <h3 className="text-xl font-bold text-white">{domain}</h3>
-                </div>
-                <div className="p-4 space-y-3">
-                  <HitCard
-                    title="行为模式"
-                    content={insight.pattern}
-                    onHit={() => onHit(`${domain}·行为模式`, insight.pattern)}
-                    hit={hit === `${domain}·行为模式`}
-                  />
-                  <HitCard
-                    title="深层恐惧"
-                    content={insight.fear}
-                    onHit={() => onHit(`${domain}·深层恐惧`, insight.fear)}
-                    hit={hit === `${domain}·深层恐惧`}
-                  />
-                  <HitCard
-                    title="场景建议"
-                    content={insight.advice}
-                    onHit={() => onHit(`${domain}·场景建议`, insight.advice)}
-                    hit={hit === `${domain}·场景建议`}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
         {/* 那句话 */}
-        {global?.oneSentence && (
+        {oneSentence && (
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-md p-8 text-center mt-8">
             <p className="text-xl font-medium text-slate-700 italic">
-              “{global.oneSentence}”
+              “{oneSentence}”
             </p>
           </div>
         )}
 
         {/* bonus 自由输出 */}
-        {global?.bonus && global.bonus.trim() !== '' && (
+        {bonus && bonus.trim() !== '' && (
           <div className="bg-amber-50 border-l-4 border-amber-400 rounded-xl shadow-md p-6 italic text-slate-700 mt-4">
-            💡 {global.bonus}
+            💡 {bonus}
           </div>
         )}
 
@@ -180,10 +162,10 @@ function HitCard({ title, content, onHit, hit }: { title: string; content: strin
       onClick={onHit}
     >
       <div className="flex justify-between items-start">
-        <h3 className="text-md font-semibold text-slate-600 mb-2">{title}</h3>
+        <h2 className="text-lg font-semibold text-slate-700 mb-2">{title}</h2>
         <span className="text-xs text-slate-400">⬅️ 这句最戳我</span>
       </div>
-      <p className="text-slate-700">{content}</p>
+      <p className="text-slate-600">{content}</p>
     </div>
   );
 }

@@ -37,18 +37,28 @@ export default function Home() {
       alert('请至少选择一个分析领域');
       return;
     }
+    if (!formData.story.trim()) {
+      alert('请描述一件具体的事');
+      return;
+    }
     setLoading(true);
 
-    // ✅ 存数据到 localStorage（替换原来的 API 调用）
-    localStorage.setItem('deepinside_page1', JSON.stringify({
-      mood: formData.mood,
-      moodDetail: formData.moodDetail,
-      fields: formData.fields,
-      story: formData.story
-    }));
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mood: formData.mood,
+        moodDetail: formData.moodDetail,
+        fields: formData.fields,
+        story: formData.story
+      })
+    });
 
-    // ✅ 跳转到选择题页面
-    router.push('/questions');
+    const data = await res.json();
+    router.push({
+      pathname: '/report',
+      query: { data: JSON.stringify(data.report) }
+    });
   };
 
   return (
@@ -125,16 +135,16 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 问题3：具体事件 */}
+            {/* 问题3：具体事件（开放题） */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                3. 针对你选的领域，描述一件具体的事
+                3. 描述一件具体的事
               </label>
               <textarea
                 required
-                rows={3}
+                rows={4}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg"
-                placeholder="例：我总担心 ta 会离开我"
+                placeholder="写一段话，描述你最近真实的困扰或故事。写得越具体，报告越准。&#10;&#10;例如：我总担心他会离开我，上次他三小时没回消息，我就开始想是不是我哪里做错了..."
                 value={formData.story}
                 onChange={(e) => setFormData({ ...formData, story: e.target.value })}
               />
@@ -145,7 +155,7 @@ export default function Home() {
               disabled={loading}
               className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition disabled:bg-blue-300"
             >
-              {loading ? '保存中...' : '下一步'}
+              {loading ? '正在解析你的故事...' : '开始解析'}
             </button>
           </form>
         </div>
