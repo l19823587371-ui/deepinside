@@ -39,22 +39,16 @@ export default function Home() {
     }
     setLoading(true);
 
-    const res = await fetch('/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mood: formData.mood,
-        moodDetail: formData.moodDetail,
-        fields: formData.fields,
-        story: formData.story
-      })
-    });
+    // ✅ 存数据到 localStorage（替换原来的 API 调用）
+    localStorage.setItem('deepinside_page1', JSON.stringify({
+      mood: formData.mood,
+      moodDetail: formData.moodDetail,
+      fields: formData.fields,
+      story: formData.story
+    }));
 
-    const data = await res.json();
-    router.push({
-      pathname: '/report',
-      query: { data: JSON.stringify(data.report) }
-    });
+    // ✅ 跳转到选择题页面
+    router.push('/questions');
   };
 
   return (
@@ -151,7 +145,7 @@ export default function Home() {
               disabled={loading}
               className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition disabled:bg-blue-300"
             >
-              {loading ? '正在解析你的底层代码...' : '开始解析'}
+              {loading ? '保存中...' : '下一步'}
             </button>
           </form>
         </div>

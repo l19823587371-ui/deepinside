@@ -1,10 +1,10 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
-interface FieldDetail {
+interface DomainInsight {
   pattern: string;
-  insight: string;
-  action: string;
+  fear: string;
+  advice: string;
 }
 
 interface ReportData {
@@ -13,11 +13,15 @@ interface ReportData {
     oneSentence: string;
     bonus: string;
   };
-  fields: {
-    爱情?: FieldDetail;
-    事业?: FieldDetail;
-    家庭?: FieldDetail;
-    友情?: FieldDetail;
+  personality: string;
+  pattern: string;
+  blindspot: string;
+  advice: string;
+  domain_insights?: {
+    爱情?: DomainInsight;
+    事业?: DomainInsight;
+    家庭?: DomainInsight;
+    友情?: DomainInsight;
   };
 }
 
@@ -31,20 +35,7 @@ export default function Report() {
     if (data && typeof data === 'string') {
       try {
         const parsed = JSON.parse(data);
-        // 兼容旧版扁平结构（如果你还保留了旧版 API，可以去掉这段）
-        if (parsed.personality) {
-          // 将旧版转换为新版结构
-          setReport({
-            global: {
-              tag: parsed.tag || '探索者',
-              oneSentence: parsed.oneSentence || '',
-              bonus: parsed.bonus || ''
-            },
-            fields: {}
-          });
-        } else {
-          setReport(parsed);
-        }
+        setReport(parsed);
       } catch (e) {
         console.error('解析报告失败', e);
       }
@@ -65,14 +56,13 @@ export default function Report() {
     );
   }
 
-  const { global, fields } = report;
-  const selectedFields = Object.keys(fields).filter(key => fields[key as keyof typeof fields]);
+  const { global, personality, pattern, blindspot, advice, domain_insights } = report;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4">
       <div className="max-w-3xl mx-auto">
         {/* 人格标签 */}
-        {global.tag && (
+        {global?.tag && (
           <div className="text-center mb-6">
             <span className="inline-block bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-full text-lg font-bold shadow-lg">
               {global.tag}
@@ -87,47 +77,72 @@ export default function Report() {
           <p className="text-slate-500">看见你未曾看见的自己</p>
         </div>
 
-        {/* 动态领域分析 */}
-        {selectedFields.length === 0 && (
-          <div className="bg-white rounded-xl shadow-md p-6 text-center text-slate-500">
-            暂无领域分析数据
+        {/* ===== 基础模块（始终显示） ===== */}
+        <div className="space-y-4 mb-8">
+          <HitCard
+            title="人格核心"
+            content={personality}
+            onHit={() => onHit('人格核心', personality)}
+            hit={hit === '人格核心'}
+          />
+          <HitCard
+            title="行为模式"
+            content={pattern}
+            onHit={() => onHit('行为模式', pattern)}
+            hit={hit === '行为模式'}
+          />
+          <HitCard
+            title="可能的盲点"
+            content={blindspot}
+            onHit={() => onHit('可能的盲点', blindspot)}
+            hit={hit === '可能的盲点'}
+          />
+          <HitCard
+            title="给你的建议"
+            content={advice}
+            onHit={() => onHit('给你的建议', advice)}
+            hit={hit === '给你的建议'}
+          />
+        </div>
+
+        {/* ===== 场景化洞察（domain_insights） ===== */}
+        {domain_insights && Object.keys(domain_insights).length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold text-slate-700 mb-4 border-l-4 border-blue-500 pl-3">
+              场景深度分析
+            </h2>
+            {Object.entries(domain_insights).map(([domain, insight]) => (
+              <div key={domain} className="mb-6 bg-white rounded-xl shadow-md overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-3">
+                  <h3 className="text-xl font-bold text-white">{domain}</h3>
+                </div>
+                <div className="p-4 space-y-3">
+                  <HitCard
+                    title="行为模式"
+                    content={insight.pattern}
+                    onHit={() => onHit(`${domain}·行为模式`, insight.pattern)}
+                    hit={hit === `${domain}·行为模式`}
+                  />
+                  <HitCard
+                    title="深层恐惧"
+                    content={insight.fear}
+                    onHit={() => onHit(`${domain}·深层恐惧`, insight.fear)}
+                    hit={hit === `${domain}·深层恐惧`}
+                  />
+                  <HitCard
+                    title="场景建议"
+                    content={insight.advice}
+                    onHit={() => onHit(`${domain}·场景建议`, insight.advice)}
+                    hit={hit === `${domain}·场景建议`}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
-        {selectedFields.map((field) => {
-          const data = fields[field as keyof typeof fields] as FieldDetail;
-          if (!data) return null;
-          return (
-            <div key={field} className="mb-8">
-              <h2 className="text-2xl font-bold text-slate-700 mb-4 border-l-4 border-blue-500 pl-3">
-                {field}
-              </h2>
-              <div className="space-y-4">
-                <HitCard
-                  title="行为模式"
-                  content={data.pattern}
-                  onHit={() => onHit(`${field}·行为模式`, data.pattern)}
-                  hit={hit === `${field}·行为模式`}
-                />
-                <HitCard
-                  title="深层洞察"
-                  content={data.insight}
-                  onHit={() => onHit(`${field}·深层洞察`, data.insight)}
-                  hit={hit === `${field}·深层洞察`}
-                />
-                <HitCard
-                  title="行动建议"
-                  content={data.action}
-                  onHit={() => onHit(`${field}·行动建议`, data.action)}
-                  hit={hit === `${field}·行动建议`}
-                />
-              </div>
-            </div>
-          );
-        })}
-
-        {/* 那句话（独立模块） */}
-        {global.oneSentence && (
+        {/* 那句话 */}
+        {global?.oneSentence && (
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-md p-8 text-center mt-8">
             <p className="text-xl font-medium text-slate-700 italic">
               “{global.oneSentence}”
@@ -136,7 +151,7 @@ export default function Report() {
         )}
 
         {/* bonus 自由输出 */}
-        {global.bonus && global.bonus.trim() !== '' && (
+        {global?.bonus && global.bonus.trim() !== '' && (
           <div className="bg-amber-50 border-l-4 border-amber-400 rounded-xl shadow-md p-6 italic text-slate-700 mt-4">
             💡 {global.bonus}
           </div>
