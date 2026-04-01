@@ -19,11 +19,9 @@ export default function Home() {
       const newFields = prev.fields.includes(field)
         ? prev.fields.filter(f => f !== field)
         : [...prev.fields, field];
-      // 如果选了“全部”，清空其他，只保留“全部”
       if (field === '全部') {
         return { ...prev, fields: newFields.includes('全部') ? ['全部'] : [] };
       }
-      // 如果选了其他，去掉“全部”
       if (newFields.includes(field) && prev.fields.includes('全部')) {
         return { ...prev, fields: newFields.filter(f => f !== '全部') };
       }
@@ -33,6 +31,10 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.mood) {
+      alert('请选择一个状态');
+      return;
+    }
     if (formData.fields.length === 0) {
       alert('请至少选择一个分析领域');
       return;
@@ -66,7 +68,7 @@ export default function Home() {
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold text-slate-800 mb-2">DEEPINSIDE</h1>
-          <p className="text-slate-500">你的底层代码解析器</p>
+          <p className="text-slate-500">看见你未曾看见的自己</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -135,7 +137,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 问题3：具体事件（开放题） */}
+            {/* 问题3：具体事件 */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 3. 描述一件具体的事
@@ -144,7 +146,7 @@ export default function Home() {
                 required
                 rows={4}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg"
-                placeholder="写一段话，描述你最近真实的困扰或故事。写得越具体，报告越准。&#10;&#10;例如：我总担心他会离开我，上次他三小时没回消息，我就开始想是不是我哪里做错了..."
+                placeholder="例：我总担心 ta 会离开我。上次他三小时没回消息，我就开始胡思乱想..."
                 value={formData.story}
                 onChange={(e) => setFormData({ ...formData, story: e.target.value })}
               />
