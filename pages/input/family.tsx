@@ -43,6 +43,7 @@ export default function FamilyInput() {
     });
 
     const data = await res.json();
+    
     router.push({
       pathname: '/report',
       query: { 

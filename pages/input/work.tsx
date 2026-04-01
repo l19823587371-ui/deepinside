@@ -43,6 +43,7 @@ export default function WorkInput() {
     });
 
     const data = await res.json();
+    
     router.push({
       pathname: '/report',
       query: { 

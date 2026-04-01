@@ -44,6 +44,8 @@ export default function LoveInput() {
     });
 
     const data = await res.json();
+    
+    // 确保 story 通过 URL 传递
     router.push({
       pathname: '/report',
       query: { 
