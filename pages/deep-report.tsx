@@ -25,10 +25,29 @@ export default function DeepReport() {
     setSharing(true);
     
     try {
+      // 修复颜色解析错误
       const canvas = await html2canvas(reportRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',
         logging: false,
+        useCORS: true,
+        allowTaint: false,
+        // 忽略不支持的颜色格式
+        onclone: (clonedDoc, element) => {
+          // 将所有 lab 颜色替换为 rgb
+          const allElements = element.querySelectorAll('*');
+          allElements.forEach((el: any) => {
+            const computedStyle = window.getComputedStyle(el);
+            const bgColor = computedStyle.backgroundColor;
+            if (bgColor && bgColor.includes('lab')) {
+              el.style.backgroundColor = '#ffffff';
+            }
+            const color = computedStyle.color;
+            if (color && color.includes('lab')) {
+              el.style.color = '#000000';
+            }
+          });
+        }
       });
       
       const link = document.createElement('a');
