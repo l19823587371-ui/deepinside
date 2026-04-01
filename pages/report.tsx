@@ -14,8 +14,9 @@ export default function Report() {
   useEffect(() => {
     const { data, story } = router.query;
     
-    console.log('URL 参数:', { data: !!data, story });
+    console.log('Report 页面 - URL 参数:', { data: !!data, story });
     
+    // 解析报告内容
     if (data && typeof data === 'string') {
       try {
         setReport(JSON.parse(data));
@@ -24,42 +25,45 @@ export default function Report() {
       }
     }
     
-    // 从 URL 获取 story
+    // 获取故事：优先从 URL，然后从 localStorage
+    let finalStory = '';
+    
     if (story && typeof story === 'string') {
-      console.log('从 URL 获取故事:', story);
-      setOriginalStory(story);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('deepinside_original_story', story);
-        console.log('已保存故事到 localStorage');
-        // 验证是否保存成功
-        const saved = localStorage.getItem('deepinside_original_story');
-        console.log('验证保存:', saved);
-      }
+      finalStory = story;
+      console.log('从 URL 获取故事:', finalStory);
     } else if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('deepinside_original_story');
       if (saved) {
-        console.log('从 localStorage 读取故事:', saved);
-        setOriginalStory(saved);
-      } else {
-        console.warn('没有找到故事');
+        finalStory = saved;
+        console.log('从 localStorage 获取故事:', finalStory);
       }
+    }
+    
+    if (finalStory) {
+      setOriginalStory(finalStory);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('deepinside_original_story', finalStory);
+        console.log('已保存故事到 localStorage');
+      }
+    } else {
+      console.warn('没有找到故事');
     }
   }, [router.query]);
 
   const handleUnlock = () => {
     console.log('解锁深度版，当前故事:', originalStory);
     
+    if (!originalStory) {
+      console.error('故事为空！');
+      alert('未找到你的故事，请返回首页重新生成免费信');
+      return;
+    }
+    
     if (typeof window !== 'undefined') {
       localStorage.setItem('deepinside_free_letter', report?.letter || '');
-      if (originalStory) {
-        localStorage.setItem('deepinside_original_story', originalStory);
-        console.log('解锁时保存故事:', originalStory);
-      } else {
-        console.error('解锁时故事为空！');
-        alert('未找到你的故事，请返回首页重新生成免费信');
-        return;
-      }
+      localStorage.setItem('deepinside_original_story', originalStory);
     }
+    
     router.push(`/deep-questions/1?story=${encodeURIComponent(originalStory)}`);
   };
 

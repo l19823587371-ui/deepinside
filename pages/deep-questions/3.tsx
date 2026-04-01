@@ -13,19 +13,22 @@ export default function Question3() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const story = localStorage.getItem('deepinside_original_story');
-      console.log('追问3 从 localStorage 读取故事:', story);
+      console.log('追问3 - 从 localStorage 读取故事:', story?.slice(0, 50));
+      
       if (story) {
         setOriginalStory(story);
       } else {
-        console.error('追问3 没有找到故事');
+        console.error('追问3 - 没有找到故事');
+        alert('未找到你的故事，请返回首页重新生成免费信');
       }
+      
       setAnswer1(localStorage.getItem('deep_answer1') || '');
       setAnswer2(localStorage.getItem('deep_answer2') || '');
     }
   }, []);
 
   const handleGenerate = async () => {
-    if (!originalStory.trim()) {
+    if (!originalStory) {
       alert('未找到原始故事，请返回首页重新生成免费信');
       return;
     }
@@ -33,6 +36,13 @@ export default function Question3() {
       alert('请回答第三个问题');
       return;
     }
+    
+    console.log('发送数据:', {
+      originalStory: originalStory.slice(0, 50),
+      answer1: answer1.slice(0, 50),
+      answer2: answer2.slice(0, 50),
+      answer3: answer.slice(0, 50)
+    });
     
     setLoading(true);
 
@@ -50,7 +60,8 @@ export default function Question3() {
     const data = await res.json();
     
     if (!res.ok) {
-      alert(`错误: ${data.error}`);
+      console.error('API 错误:', data);
+      alert(`生成失败: ${data.error}`);
       setLoading(false);
       return;
     }
@@ -72,14 +83,9 @@ export default function Question3() {
             <label className="block text-sm font-medium text-slate-700 mb-2">
               你的原始故事
             </label>
-            <div className="bg-slate-50 p-3 rounded-lg text-slate-600 whitespace-pre-wrap">
+            <div className="bg-slate-50 p-3 rounded-lg text-slate-600 whitespace-pre-wrap max-h-32 overflow-y-auto">
               {originalStory || '加载中...'}
             </div>
-            {!originalStory && (
-              <p className="text-xs text-red-500 mt-1">
-                ⚠️ 未找到故事，请返回首页重新生成免费信
-              </p>
-            )}
           </div>
           
           <div className="mb-6">
