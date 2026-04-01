@@ -4,24 +4,34 @@ import Navbar from '../../components/Navbar';
 
 export default function Question3() {
   const router = useRouter();
+  const [originalStory, setOriginalStory] = useState('');
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
-  const [originalStory, setOriginalStory] = useState('');
   const [answer1, setAnswer1] = useState('');
   const [answer2, setAnswer2] = useState('');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // 从 localStorage 读取所有数据
-      setOriginalStory(localStorage.getItem('deepinside_original_story') || '');
+      // 从 localStorage 读取故事
+      const story = localStorage.getItem('deepinside_original_story');
+      if (story) {
+        setOriginalStory(story);
+        console.log('已加载故事:', story);
+      } else {
+        console.warn('未找到故事，请确保从正确入口进入');
+      }
       setAnswer1(localStorage.getItem('deep_answer1') || '');
       setAnswer2(localStorage.getItem('deep_answer2') || '');
     }
   }, []);
 
   const handleGenerate = async () => {
+    if (!originalStory.trim()) {
+      alert('未找到原始故事，请返回第一步重新生成免费信');
+      return;
+    }
     if (!answer.trim()) {
-      alert('请回答这个问题');
+      alert('请回答第三个问题');
       return;
     }
     
@@ -39,6 +49,13 @@ export default function Question3() {
     });
 
     const data = await res.json();
+    
+    if (!res.ok) {
+      alert(`错误: ${data.error}`);
+      setLoading(false);
+      return;
+    }
+    
     router.push({
       pathname: '/deep-report',
       query: { data: JSON.stringify(data.report) }
@@ -52,16 +69,50 @@ export default function Question3() {
         <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8">
           <h1 className="text-2xl font-bold mb-4">最后一个问题</h1>
           
-          <p className="text-lg font-medium mb-4">
-            如果坚持做信里建议的那件小事 30 天，你觉得最大的变化会是什么？
-          </p>
-          <textarea
-            rows={5}
-            className="w-full border rounded-lg p-3 mb-6"
-            placeholder="例：我可能会变成一个敢生气也敢和好的人"
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-          />
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              你的原始故事
+            </label>
+            <div className="bg-slate-50 p-3 rounded-lg text-slate-600 whitespace-pre-wrap">
+              {originalStory || '加载中...'}
+            </div>
+            {!originalStory && (
+              <p className="text-xs text-red-500 mt-1">
+                ⚠️ 未找到故事，请返回首页重新生成免费信
+              </p>
+            )}
+          </div>
+          
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              你的第一个回答
+            </label>
+            <div className="bg-slate-50 p-3 rounded-lg text-slate-600">
+              {answer1 || '（未找到）'}
+            </div>
+          </div>
+          
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              你的第二个回答
+            </label>
+            <div className="bg-slate-50 p-3 rounded-lg text-slate-600">
+              {answer2 || '（未找到）'}
+            </div>
+          </div>
+          
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              如果坚持做那件小事 30 天，最大的变化会是什么？ <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              rows={3}
+              className="w-full border rounded-lg p-3"
+              placeholder="例：我可能会变成一个敢生气也敢和好的人"
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+            />
+          </div>
           
           <button
             onClick={handleGenerate}

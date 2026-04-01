@@ -1,10 +1,21 @@
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 
 export default function Question1() {
   const router = useRouter();
   const [answer, setAnswer] = useState('');
+
+  useEffect(() => {
+    // 从 URL 获取 story 并存入 localStorage
+    const { story } = router.query;
+    if (story && typeof story === 'string') {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('deepinside_original_story', story);
+        console.log('已保存故事到 localStorage:', story);
+      }
+    }
+  }, [router.query]);
 
   const handleNext = () => {
     if (!answer.trim()) {
