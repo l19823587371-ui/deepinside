@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router';
+import Navbar from '../components/Navbar';
 
 export default function Scene() {
   const router = useRouter();
@@ -12,26 +13,29 @@ export default function Scene() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-slate-800 mb-2">DEEPINSIDE</h1>
-          <p className="text-slate-500">选择你想探索的领域</p>
-        </div>
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-10">
+            <h1 className="text-4xl font-bold text-slate-800 mb-2">DEEPINSIDE</h1>
+            <p className="text-slate-500">选择你想探索的领域</p>
+          </div>
 
-        <div className="space-y-4">
-          {scenes.map((scene) => (
-            <button
-              key={scene.name}
-              onClick={() => router.push(scene.path)}
-              className="w-full bg-white rounded-xl shadow-md p-6 text-left hover:shadow-lg transition"
-            >
-              <h2 className="text-xl font-bold text-slate-800">{scene.name}</h2>
-              <p className="text-slate-500 mt-1">{scene.desc}</p>
-            </button>
-          ))}
+          <div className="space-y-4">
+            {scenes.map((scene) => (
+              <button
+                key={scene.name}
+                onClick={() => router.push(scene.path)}
+                className="w-full bg-white rounded-xl shadow-md p-6 text-left hover:shadow-lg transition"
+              >
+                <h2 className="text-xl font-bold text-slate-800">{scene.name}</h2>
+                <p className="text-slate-500 mt-1">{scene.desc}</p>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
