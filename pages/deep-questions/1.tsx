@@ -1,13 +1,23 @@
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 
 export default function Question1() {
   const router = useRouter();
   const [answer, setAnswer] = useState('');
+  const [freeLetter, setFreeLetter] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const letter = localStorage.getItem('deepinside_free_letter');
+      setFreeLetter(letter || '');
+    }
+  }, []);
 
   const handleNext = () => {
-    localStorage.setItem('deep_answer1', answer);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('deep_answer1', answer);
+    }
     router.push('/deep-questions/2');
   };
 
@@ -20,7 +30,7 @@ export default function Question1() {
           <p className="text-slate-600 mb-6">
             你在免费信里看到这句话：<br />
             <span className="italic text-slate-800">
-              {localStorage.getItem('deepinside_free_letter')?.slice(0, 100)}...
+              {freeLetter.slice(0, 100)}...
             </span>
           </p>
           <p className="text-lg font-medium mb-4">

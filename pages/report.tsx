@@ -26,8 +26,10 @@ export default function Report() {
   }, [router.query]);
 
   const handleUnlock = () => {
-    localStorage.setItem('deepinside_free_letter', report?.letter || '');
-    localStorage.setItem('deepinside_original_story', originalStory);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('deepinside_free_letter', report?.letter || '');
+      localStorage.setItem('deepinside_original_story', originalStory);
+    }
     router.push('/deep-questions/1');
   };
 

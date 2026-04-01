@@ -7,7 +7,9 @@ export default function Question2() {
   const [answer, setAnswer] = useState('');
 
   const handleNext = () => {
-    localStorage.setItem('deep_answer2', answer);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('deep_answer2', answer);
+    }
     router.push('/deep-questions/3');
   };
 

@@ -1,25 +1,33 @@
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 
 export default function Question3() {
   const router = useRouter();
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
+  const [originalStory, setOriginalStory] = useState('');
+  const [answer1, setAnswer1] = useState('');
+  const [answer2, setAnswer2] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOriginalStory(localStorage.getItem('deepinside_original_story') || '');
+      setAnswer1(localStorage.getItem('deep_answer1') || '');
+      setAnswer2(localStorage.getItem('deep_answer2') || '');
+    }
+  }, []);
 
   const handleGenerate = async () => {
-    localStorage.setItem('deep_answer3', answer);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('deep_answer3', answer);
+    }
     setLoading(true);
-
-    const originalStory = localStorage.getItem('deepinside_original_story');
-    const answer1 = localStorage.getItem('deep_answer1');
-    const answer2 = localStorage.getItem('deep_answer2');
-    const answer3 = answer;
 
     const res = await fetch('/api/deep-generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ originalStory, answer1, answer2, answer3 })
+      body: JSON.stringify({ originalStory, answer1, answer2, answer3: answer })
     });
 
     const data = await res.json();
