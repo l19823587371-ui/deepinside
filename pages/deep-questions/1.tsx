@@ -7,12 +7,28 @@ export default function Question1() {
   const [answer, setAnswer] = useState('');
 
   useEffect(() => {
-    // 从 URL 获取 story 并存入 localStorage
     const { story } = router.query;
+    console.log('追问1 收到的 story:', story);
+    
     if (story && typeof story === 'string') {
       if (typeof window !== 'undefined') {
         localStorage.setItem('deepinside_original_story', story);
-        console.log('已保存故事到 localStorage:', story);
+        console.log('追问1 已保存故事:', story);
+        // 验证
+        const saved = localStorage.getItem('deepinside_original_story');
+        console.log('追问1 验证保存:', saved);
+      }
+    } else {
+      // 如果 URL 没有，尝试从 localStorage 读取
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('deepinside_original_story');
+        console.log('追问1 从 localStorage 读取:', saved);
+        if (saved) {
+          // 不需要操作，已经存在
+        } else {
+          console.error('追问1 没有找到故事');
+          alert('未找到你的故事，请返回首页重新生成免费信');
+        }
       }
     }
   }, [router.query]);
