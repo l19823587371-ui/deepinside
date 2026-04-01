@@ -12,13 +12,12 @@ export default function Question3() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // 从 localStorage 读取故事
       const story = localStorage.getItem('deepinside_original_story');
+      console.log('追问3 从 localStorage 读取故事:', story);
       if (story) {
         setOriginalStory(story);
-        console.log('已加载故事:', story);
       } else {
-        console.warn('未找到故事，请确保从正确入口进入');
+        console.error('追问3 没有找到故事');
       }
       setAnswer1(localStorage.getItem('deep_answer1') || '');
       setAnswer2(localStorage.getItem('deep_answer2') || '');
@@ -27,7 +26,7 @@ export default function Question3() {
 
   const handleGenerate = async () => {
     if (!originalStory.trim()) {
-      alert('未找到原始故事，请返回第一步重新生成免费信');
+      alert('未找到原始故事，请返回首页重新生成免费信');
       return;
     }
     if (!answer.trim()) {
