@@ -24,6 +24,11 @@ export default function FamilyInput() {
       alert('请描述一件具体的事');
       return;
     }
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('deepinside_original_story', formData.story);
+    }
+
     setLoading(true);
 
     const res = await fetch('/api/generate', {
@@ -51,7 +56,7 @@ export default function FamilyInput() {
         <div className="max-w-2xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <h1 className="text-2xl font-bold text-slate-800 mb-2">家庭 · 你的故事</h1>
-            <p className="text-slate-500 mb-6">说出你与家人的关系、期待或困扰，我会给你写一封信</p>
+            <p className="text-slate-500 mb-6">说出你在家庭中的困惑，我会给你写一封信</p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
@@ -87,7 +92,7 @@ export default function FamilyInput() {
                   required
                   rows={4}
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg"
-                  placeholder="例：每次回家都觉得压力很大，但又很想被家人认可..."
+                  placeholder="例：每次回家，我都觉得压力很大，但又不知道说什么..."
                   value={formData.story}
                   onChange={(e) => setFormData({ ...formData, story: e.target.value })}
                 />
@@ -96,9 +101,9 @@ export default function FamilyInput() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition"
+                className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition disabled:bg-blue-300"
               >
-                {loading ? '正在解析...' : '开始解析'}
+                {loading ? '正在解析你的故事...' : '开始解析'}
               </button>
             </form>
           </div>

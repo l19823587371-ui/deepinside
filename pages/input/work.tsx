@@ -24,6 +24,11 @@ export default function WorkInput() {
       alert('请描述一件具体的事');
       return;
     }
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('deepinside_original_story', formData.story);
+    }
+
     setLoading(true);
 
     const res = await fetch('/api/generate', {
@@ -96,9 +101,9 @@ export default function WorkInput() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition"
+                className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition disabled:bg-blue-300"
               >
-                {loading ? '正在解析...' : '开始解析'}
+                {loading ? '正在解析你的故事...' : '开始解析'}
               </button>
             </form>
           </div>
