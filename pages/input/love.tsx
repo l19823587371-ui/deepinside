@@ -24,12 +24,12 @@ export default function LoveInput() {
       alert('请描述一件具体的事');
       return;
     }
-
+    
     // 保存故事到 localStorage
     if (typeof window !== 'undefined') {
       localStorage.setItem('deepinside_original_story', formData.story);
     }
-
+    
     setLoading(true);
 
     const res = await fetch('/api/generate', {
@@ -46,7 +46,10 @@ export default function LoveInput() {
     const data = await res.json();
     router.push({
       pathname: '/report',
-      query: { data: JSON.stringify(data.report) }
+      query: { 
+        data: JSON.stringify(data.report),
+        story: formData.story
+      }
     });
   };
 

@@ -24,11 +24,11 @@ export default function FamilyInput() {
       alert('请描述一件具体的事');
       return;
     }
-
+    
     if (typeof window !== 'undefined') {
       localStorage.setItem('deepinside_original_story', formData.story);
     }
-
+    
     setLoading(true);
 
     const res = await fetch('/api/generate', {
@@ -45,7 +45,10 @@ export default function FamilyInput() {
     const data = await res.json();
     router.push({
       pathname: '/report',
-      query: { data: JSON.stringify(data.report) }
+      query: { 
+        data: JSON.stringify(data.report),
+        story: formData.story
+      }
     });
   };
 
