@@ -11,21 +11,31 @@ export default function Question3() {
   const [answer2, setAnswer2] = useState('');
 
   useEffect(() => {
+    // 检查是否已打赏
+    if (typeof window !== 'undefined') {
+      const tipped = localStorage.getItem('deepinside_tipped');
+      if (!tipped) {
+        alert('请先打赏支持，再解锁深度报告 ☕');
+        router.push('/tip');
+        return;
+      }
+    }
+
     if (typeof window !== 'undefined') {
       const story = localStorage.getItem('deepinside_original_story');
-      console.log('追问3 - 从 localStorage 读取故事:', story?.slice(0, 50));
-      
       if (story) {
         setOriginalStory(story);
+        console.log('追问3 - 已加载故事:', story.slice(0, 50));
       } else {
         console.error('追问3 - 没有找到故事');
         alert('未找到你的故事，请返回首页重新生成免费信');
+        router.push('/');
       }
       
       setAnswer1(localStorage.getItem('deep_answer1') || '');
       setAnswer2(localStorage.getItem('deep_answer2') || '');
     }
-  }, []);
+  }, [router]);
 
   const handleGenerate = async () => {
     if (!originalStory) {

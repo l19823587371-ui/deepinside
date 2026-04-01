@@ -7,27 +7,31 @@ export default function Question1() {
   const [answer, setAnswer] = useState('');
 
   useEffect(() => {
+    // 检查是否已打赏
+    if (typeof window !== 'undefined') {
+      const tipped = localStorage.getItem('deepinside_tipped');
+      if (!tipped) {
+        alert('请先打赏支持，再解锁深度报告 ☕');
+        router.push('/tip');
+        return;
+      }
+    }
+
     const { story } = router.query;
-    console.log('追问1 收到的 story:', story);
-    
     if (story && typeof story === 'string') {
       if (typeof window !== 'undefined') {
         localStorage.setItem('deepinside_original_story', story);
-        console.log('追问1 已保存故事:', story);
-        const saved = localStorage.getItem('deepinside_original_story');
-        console.log('追问1 验证保存:', saved);
+        console.log('追问1 - 已保存故事');
       }
-    } else {
-      if (typeof window !== 'undefined') {
-        const saved = localStorage.getItem('deepinside_original_story');
-        console.log('追问1 从 localStorage 读取:', saved);
-        if (!saved) {
-          console.error('追问1 没有找到故事');
-          alert('未找到你的故事，请返回首页重新生成免费信');
-        }
+    } else if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('deepinside_original_story');
+      if (!saved) {
+        console.error('追问1 - 没有找到故事');
+        alert('未找到你的故事，请返回首页重新生成免费信');
+        router.push('/');
       }
     }
-  }, [router.query]);
+  }, [router.query, router]);
 
   const handleNext = () => {
     if (!answer.trim()) {

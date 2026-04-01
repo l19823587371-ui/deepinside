@@ -12,11 +12,8 @@ export default function Report() {
   const [originalStory, setOriginalStory] = useState('');
 
   useEffect(() => {
-    const { data, story } = router.query;
+    const { data } = router.query;
     
-    console.log('Report 页面 - URL 参数:', { data: !!data, story });
-    
-    // 解析报告内容
     if (data && typeof data === 'string') {
       try {
         setReport(JSON.parse(data));
@@ -25,43 +22,23 @@ export default function Report() {
       }
     }
     
-    // 获取故事：优先从 URL，然后从 localStorage
-    let finalStory = '';
-    
-    if (story && typeof story === 'string') {
-      finalStory = story;
-      console.log('从 URL 获取故事:', finalStory);
-    } else if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('deepinside_original_story');
-      if (saved) {
-        finalStory = saved;
-        console.log('从 localStorage 获取故事:', finalStory);
+    // 从 localStorage 读取故事
+    if (typeof window !== 'undefined') {
+      const story = localStorage.getItem('deepinside_original_story');
+      if (story) {
+        setOriginalStory(story);
       }
-    }
-    
-    if (finalStory) {
-      setOriginalStory(finalStory);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('deepinside_original_story', finalStory);
-        console.log('已保存故事到 localStorage');
-      }
-    } else {
-      console.warn('没有找到故事');
     }
   }, [router.query]);
 
   const handleUnlock = () => {
-    console.log('解锁深度版，当前故事:', originalStory);
-    
     if (!originalStory) {
-      console.error('故事为空！');
       alert('未找到你的故事，请返回首页重新生成免费信');
       return;
     }
     
     if (typeof window !== 'undefined') {
       localStorage.setItem('deepinside_free_letter', report?.letter || '');
-      localStorage.setItem('deepinside_original_story', originalStory);
     }
     
     router.push(`/deep-questions/1?story=${encodeURIComponent(originalStory)}`);
@@ -98,12 +75,20 @@ export default function Report() {
                 如果你想看见更深的自己——<br />
                 根源拆解 · 双路径推演 · 风险预警 · 30天破局地图 · 一句话承诺
               </p>
-              <button
-                onClick={handleUnlock}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
-              >
-                解锁深度拆解版 →
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={handleUnlock}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+                >
+                  解锁深度拆解版 →
+                </button>
+                <button
+                  onClick={() => router.push('/tip')}
+                  className="bg-amber-500 text-white px-6 py-2 rounded-lg hover:bg-amber-600 transition"
+                >
+                  ☕ 请我喝咖啡
+                </button>
+              </div>
             </div>
 
             <div className="mt-6 text-center">
