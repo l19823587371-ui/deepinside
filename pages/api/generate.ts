@@ -40,10 +40,14 @@ export default async function handler(
       messages: [
         {
           role: 'system',
-          content: `你是一个极其敏锐的“人格镜像生成器”。你的任务不是安慰用户，而是帮用户看见自己不想看见的部分，并指出一条可能的路。
+          content: `你是一个极其敏锐的“人格镜像生成器”。
 
-【输出结构】严格按以下三个模块输出，用 JSON 格式，不要返回其他文字：
+【绝对规则】
+1. 你必须只返回一个 JSON 对象，不要返回任何其他文字、解释、Markdown、前后缀。
+2. JSON 的 key 必须是 mirror_a、mirror_b、path，且每个 value 必须是字符串。
+3. 如果不按这个格式返回，你的输出将无法被解析，用户会看到错误信息。
 
+【输出示例】
 {
   "mirror_a": "模块一的内容",
   "mirror_b": "模块二的内容",
@@ -68,7 +72,9 @@ export default async function handler(
 【刚性规则】
 1. 不准灾难化（如“你会众叛亲离”）
 2. 不准无依据预言（所有推演必须基于用户行为）
-3. 不准只给恐惧不给路（必须三个模块完整输出）`
+3. 不准只给恐惧不给路（必须三个模块完整输出）
+
+现在开始。只返回 JSON。`
         },
         {
           role: 'user',
@@ -80,22 +86,32 @@ export default async function handler(
       temperature: 0.7,
     });
 
-    const content = response.choices[0].message.content;
+    const rawContent = response.choices[0].message.content || '';
+    
+    // 清理可能存在的 markdown 代码块
+    let cleanContent = rawContent.trim();
+    if (cleanContent.startsWith('```json')) {
+      cleanContent = cleanContent.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    } else if (cleanContent.startsWith('```')) {
+      cleanContent = cleanContent.replace(/```\n?/g, '');
+    }
     
     // 解析 JSON，带 fallback
     let report;
     try {
-      report = JSON.parse(content || '{}');
-      // 如果缺少字段，补默认值
-      if (!report.mirror_a) report.mirror_a = '暂时无法解析这个模块，请稍后重试。';
-      if (!report.mirror_b) report.mirror_b = '暂时无法解析这个模块，请稍后重试。';
-      if (!report.path) report.path = '暂时无法解析这个模块，请稍后重试。';
-    } catch (e) {
-      // 如果 AI 完全不听话，返回一个安全报告
+      const parsed = JSON.parse(cleanContent);
       report = {
-        mirror_a: '你似乎有一些不想面对的事情，但愿意写下来，已经是第一步。',
-        mirror_b: '如果不改变，你可能会一直困在同样的循环里。但好消息是，你还有选择。',
-        path: '今天，花 10 分钟写下你真正想要的是什么。不用完美，只要真实。'
+        mirror_a: parsed.mirror_a || '暂时无法解析这个模块',
+        mirror_b: parsed.mirror_b || '暂时无法解析这个模块',
+        path: parsed.path || '暂时无法解析这个模块'
+      };
+    } catch (e) {
+      console.error('JSON 解析失败，原始内容:', rawContent);
+      // 如果解析失败，返回一个更友好的提示，而不是简陋的 fallback
+      report = {
+        mirror_a: '我看到了你的故事，但暂时无法完整解析。请稍后重试一次。',
+        mirror_b: '你的故事值得被认真对待。稍后再试，我会给你更好的回应。',
+        path: '今天，先做一件让你觉得“我在照顾自己”的小事。哪怕只有 5 分钟。'
       };
     }
 
