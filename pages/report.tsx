@@ -22,13 +22,15 @@ export default function Report() {
       }
     }
     
-    // 从 URL 获取 story 并立即存入 localStorage
+    // 从 URL 获取 story 并存入 localStorage
     if (story && typeof story === 'string') {
       setOriginalStory(story);
       if (typeof window !== 'undefined') {
         localStorage.setItem('deepinside_original_story', story);
+        sessionStorage.setItem('deepinside_original_story', story);
       }
     } else if (typeof window !== 'undefined') {
+      // 尝试从 localStorage 读取
       const saved = localStorage.getItem('deepinside_original_story');
       if (saved) {
         setOriginalStory(saved);
@@ -41,9 +43,11 @@ export default function Report() {
       localStorage.setItem('deepinside_free_letter', report?.letter || '');
       if (originalStory) {
         localStorage.setItem('deepinside_original_story', originalStory);
+        sessionStorage.setItem('deepinside_original_story', originalStory);
       }
     }
-    router.push('/deep-questions/1');
+    // 通过 URL 传递 story，确保追问页能收到
+    router.push(`/deep-questions/1?story=${encodeURIComponent(originalStory)}`);
   };
 
   if (!report) {

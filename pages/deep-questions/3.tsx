@@ -12,8 +12,36 @@ export default function Question3() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedStory = localStorage.getItem('deepinside_original_story');
-      if (savedStory) setOriginalStory(savedStory);
+      // 尝试从多个来源获取原始故事
+      let story = '';
+      
+      // 1. 从 localStorage 读取
+      story = localStorage.getItem('deepinside_original_story') || '';
+      
+      // 2. 如果 localStorage 没有，从 sessionStorage 读取
+      if (!story) {
+        story = sessionStorage.getItem('deepinside_original_story') || '';
+      }
+      
+      // 3. 如果还没有，从 URL 参数读取
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlStory = urlParams.get('story');
+      if (!story && urlStory) {
+        story = urlStory;
+      }
+      
+      // 4. 如果还没有，从浏览器历史读取（尝试从之前页面的 localStorage）
+      if (!story) {
+        const savedLetter = localStorage.getItem('deepinside_free_letter');
+        if (savedLetter && savedLetter.includes('我看到了')) {
+          // 尝试从信中提取，但这不准确，所以最好还是让用户自己填
+          console.log('无法从 localStorage 获取原始故事');
+        }
+      }
+      
+      setOriginalStory(story || '');
+      
+      // 获取前两个回答
       setAnswer1(localStorage.getItem('deep_answer1') || '');
       setAnswer2(localStorage.getItem('deep_answer2') || '');
     }
@@ -59,18 +87,22 @@ export default function Question3() {
         <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8">
           <h1 className="text-2xl font-bold mb-4">第三个问题</h1>
           
-          {/* 让用户确认/修改原始故事 */}
+          {/* 原始故事输入框 - 让用户手动确认/填写 */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              你的原始故事（可修改）
+              你的原始故事 <span className="text-red-500">*</span>
+              <span className="text-xs text-slate-500 ml-2">（请填写或确认你的故事）</span>
             </label>
             <textarea
-              rows={3}
+              rows={4}
               className="w-full border rounded-lg p-3"
+              placeholder="例：我总担心男朋友会离开我。上次他三小时没回消息，我就开始胡思乱想..."
               value={originalStory}
               onChange={(e) => setOriginalStory(e.target.value)}
-              placeholder="你最初写的故事会显示在这里，如果需要修改可以直接编辑"
             />
+            <p className="text-xs text-slate-400 mt-1">
+              如果系统没有自动显示，请手动粘贴你的故事
+            </p>
           </div>
           
           <p className="text-lg font-medium mb-4">
