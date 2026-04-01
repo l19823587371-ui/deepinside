@@ -9,17 +9,32 @@ interface ReportData {
 export default function Report() {
   const router = useRouter();
   const [report, setReport] = useState<ReportData | null>(null);
+  const [originalStory, setOriginalStory] = useState('');
 
   useEffect(() => {
-    const { data } = router.query;
+    const { data, story } = router.query;
     if (data && typeof data === 'string') {
       try {
-        setReport(JSON.parse(data));
+        const parsed = JSON.parse(data);
+        setReport({ letter: parsed.letter || parsed });
+        
+        // 保存原始故事到 localStorage，供深度版使用
+        if (story && typeof story === 'string') {
+          setOriginalStory(story);
+          localStorage.setItem('deepinside_original_story', story);
+        }
       } catch (e) {
         console.error('解析报告失败', e);
       }
     }
   }, [router.query]);
+
+  const handleDeepDive = () => {
+    if (report?.letter) {
+      localStorage.setItem('deepinside_free_letter', report.letter);
+    }
+    router.push('/deep-questions/1');
+  };
 
   if (!report) {
     return (
@@ -45,7 +60,25 @@ export default function Report() {
             <div className="prose prose-slate max-w-none whitespace-pre-wrap font-serif text-slate-700 leading-relaxed text-base">
               {report.letter}
             </div>
-            <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+
+            {/* 深度版入口 */}
+            <div className="mt-10 pt-6 border-t border-slate-100">
+              <div className="bg-slate-50 rounded-lg p-6 text-center">
+                <p className="text-slate-600 mb-2">这封信戳中你了吗？</p>
+                <p className="text-slate-600 mb-4 text-sm">
+                  如果你想看见更深的自己——<br />
+                  包括根源拆解、双路径推演、风险预警、30天破局地图、一句话承诺
+                </p>
+                <button
+                  onClick={handleDeepDive}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
+                >
+                  解锁深度拆解版 →
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-6 text-center">
               <button
                 onClick={() => router.push('/')}
                 className="px-6 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition"
