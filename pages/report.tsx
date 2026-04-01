@@ -14,7 +14,6 @@ export default function Report() {
   useEffect(() => {
     const { data, story } = router.query;
     
-    // 解析报告内容
     if (data && typeof data === 'string') {
       try {
         setReport(JSON.parse(data));
@@ -23,7 +22,7 @@ export default function Report() {
       }
     }
     
-    // 获取原始故事：优先从 URL，其次从 localStorage
+    // 从 URL 获取 story 并立即存入 localStorage
     if (story && typeof story === 'string') {
       setOriginalStory(story);
       if (typeof window !== 'undefined') {
@@ -40,7 +39,6 @@ export default function Report() {
   const handleUnlock = () => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('deepinside_free_letter', report?.letter || '');
-      // 确保 originalStory 也被存进去（如果还没存）
       if (originalStory) {
         localStorage.setItem('deepinside_original_story', originalStory);
       }
@@ -73,7 +71,6 @@ export default function Report() {
               {report.letter}
             </div>
 
-            {/* 解锁深度版按钮 */}
             <div className="mt-8 p-4 bg-slate-50 rounded-lg text-center">
               <p className="text-slate-600 mb-2">这封信戳中你了吗？</p>
               <p className="text-slate-600 mb-4 text-sm">
