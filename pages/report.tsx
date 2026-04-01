@@ -15,24 +15,19 @@ export default function Report() {
     const { data, story } = router.query;
     if (data && typeof data === 'string') {
       try {
-        const parsed = JSON.parse(data);
-        setReport({ letter: parsed.letter || parsed });
-        
-        // 保存原始故事到 localStorage，供深度版使用
-        if (story && typeof story === 'string') {
-          setOriginalStory(story);
-          localStorage.setItem('deepinside_original_story', story);
-        }
+        setReport(JSON.parse(data));
       } catch (e) {
         console.error('解析报告失败', e);
       }
     }
+    if (story && typeof story === 'string') {
+      setOriginalStory(story);
+    }
   }, [router.query]);
 
-  const handleDeepDive = () => {
-    if (report?.letter) {
-      localStorage.setItem('deepinside_free_letter', report.letter);
-    }
+  const handleUnlock = () => {
+    localStorage.setItem('deepinside_free_letter', report?.letter || '');
+    localStorage.setItem('deepinside_original_story', originalStory);
     router.push('/deep-questions/1');
   };
 
@@ -61,21 +56,19 @@ export default function Report() {
               {report.letter}
             </div>
 
-            {/* 深度版入口 */}
-            <div className="mt-10 pt-6 border-t border-slate-100">
-              <div className="bg-slate-50 rounded-lg p-6 text-center">
-                <p className="text-slate-600 mb-2">这封信戳中你了吗？</p>
-                <p className="text-slate-600 mb-4 text-sm">
-                  如果你想看见更深的自己——<br />
-                  包括根源拆解、双路径推演、风险预警、30天破局地图、一句话承诺
-                </p>
-                <button
-                  onClick={handleDeepDive}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
-                >
-                  解锁深度拆解版 →
-                </button>
-              </div>
+            {/* 解锁深度版按钮 */}
+            <div className="mt-8 p-4 bg-slate-50 rounded-lg text-center">
+              <p className="text-slate-600 mb-2">这封信戳中你了吗？</p>
+              <p className="text-slate-600 mb-4 text-sm">
+                如果你想看见更深的自己——<br />
+                根源拆解 · 双路径推演 · 风险预警 · 30天破局地图 · 一句话承诺
+              </p>
+              <button
+                onClick={handleUnlock}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+              >
+                解锁深度拆解版 →
+              </button>
             </div>
 
             <div className="mt-6 text-center">
