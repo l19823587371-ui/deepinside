@@ -13,6 +13,8 @@ export default function Report() {
 
   useEffect(() => {
     const { data, story } = router.query;
+    
+    // 解析报告内容
     if (data && typeof data === 'string') {
       try {
         setReport(JSON.parse(data));
@@ -20,15 +22,28 @@ export default function Report() {
         console.error('解析报告失败', e);
       }
     }
+    
+    // 获取原始故事：优先从 URL，其次从 localStorage
     if (story && typeof story === 'string') {
       setOriginalStory(story);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('deepinside_original_story', story);
+      }
+    } else if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('deepinside_original_story');
+      if (saved) {
+        setOriginalStory(saved);
+      }
     }
   }, [router.query]);
 
   const handleUnlock = () => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('deepinside_free_letter', report?.letter || '');
-      localStorage.setItem('deepinside_original_story', originalStory);
+      // 确保 originalStory 也被存进去（如果还没存）
+      if (originalStory) {
+        localStorage.setItem('deepinside_original_story', originalStory);
+      }
     }
     router.push('/deep-questions/1');
   };
