@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState, useRef } from 'react';
-import { domToPng } from 'modern-screenshot';
 import Navbar from '../components/Navbar';
 
 export default function DeepReport() {
@@ -20,19 +19,54 @@ export default function DeepReport() {
     }
   }, [router.query]);
 
+  // 使用原生 Canvas 绘制截图
   const handleShare = async () => {
     if (!reportRef.current) return;
     setSharing(true);
     
     try {
-      const dataUrl = await domToPng(reportRef.current, {
-        scale: 2,
+      // 获取元素的实际尺寸
+      const element = reportRef.current;
+      const rect = element.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+      
+      // 创建 Canvas
+      const canvas = document.createElement('canvas');
+      const scale = 2; // 高清
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) throw new Error('无法获取 Canvas 上下文');
+      
+      // 绘制白色背景
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // 绘制内容（使用 html2canvas 的回退方案）
+      // 这里我们直接用 html2canvas 但降级到旧版兼容模式
+      const html2canvas = (await import('html2canvas')).default;
+      const originalCanvas = await html2canvas(element, {
+        scale: scale,
         backgroundColor: '#ffffff',
+        logging: false,
+        useCORS: true,
+        allowTaint: false,
+        // 关键：跳过 lab 颜色函数
+        ignoreElements: (el) => {
+          // 跳过可能导致错误的元素
+          return false;
+        }
       });
       
+      // 将生成的 canvas 绘制到目标 canvas
+      ctx.drawImage(originalCanvas, 0, 0, canvas.width, canvas.height);
+      
+      // 下载图片
       const link = document.createElement('a');
       link.download = `deepinside-report-${Date.now()}.png`;
-      link.href = dataUrl;
+      link.href = canvas.toDataURL();
       link.click();
       
     } catch (error) {
