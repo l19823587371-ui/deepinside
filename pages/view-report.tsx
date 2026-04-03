@@ -2,29 +2,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 
-// 保存报告到 localStorage
-const saveReportToHistory = (report: any) => {
-  if (typeof window === 'undefined') return;
-  
-  const history = localStorage.getItem('deepinside_history');
-  let reports = history ? JSON.parse(history) : [];
-  
-  // 添加新报告（包含时间戳和内容）
-  const newReport = {
-    id: Date.now(),
-    createdAt: new Date().toISOString(),
-    data: report
-  };
-  
-  reports.unshift(newReport); // 最新的放前面
-  
-  // 只保留最近 20 条
-  if (reports.length > 20) reports = reports.slice(0, 20);
-  
-  localStorage.setItem('deepinside_history', JSON.stringify(reports));
-};
-
-export default function DeepReport() {
+export default function ViewReport() {
   const router = useRouter();
   const [report, setReport] = useState<any>(null);
 
@@ -32,12 +10,9 @@ export default function DeepReport() {
     const { data } = router.query;
     if (data && typeof data === 'string') {
       try {
-        const parsed = JSON.parse(data);
-        setReport(parsed);
-        // 自动保存到历史记录
-        saveReportToHistory(parsed);
+        setReport(JSON.parse(data));
       } catch (e) {
-        console.error('解析深度报告失败', e);
+        console.error('解析报告失败', e);
       }
     }
   }, [router.query]);
@@ -57,7 +32,7 @@ export default function DeepReport() {
     <>
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4">
-        <div className="max-w-3xl mx-auto space-y-6">
+        <div className="max-w-3xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <div className="text-center mb-6">
               <h1 className="text-2xl font-bold text-slate-800">深度拆解报告</h1>
@@ -73,18 +48,14 @@ export default function DeepReport() {
               <Section title="💫 一句话承诺" content={report.promise} highlight />
             </div>
             
-            <div className="mt-6 pt-4 border-t border-slate-100 text-center text-xs text-slate-400">
-              DEEPINSIDE · 生成于 {new Date().toLocaleDateString()}
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => router.push('/history')}
+                className="bg-slate-600 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition"
+              >
+                ← 返回历史记录
+              </button>
             </div>
-          </div>
-          
-          <div className="text-center">
-            <button
-              onClick={() => router.push('/history')}
-              className="bg-slate-600 text-white px-6 py-2 rounded-lg hover:bg-slate-700 transition"
-            >
-              📜 查看历史记录
-            </button>
           </div>
         </div>
       </div>
