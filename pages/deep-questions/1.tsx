@@ -12,6 +12,11 @@ export default function Question1() {
       const tipped = localStorage.getItem('deepinside_tipped');
       if (!tipped) {
         alert('请先打赏支持，再解锁深度报告 ☕');
+        // 保存当前故事到 localStorage，以便打赏后回来
+        const { story } = router.query;
+        if (story && typeof story === 'string') {
+          localStorage.setItem('deepinside_original_story', story);
+        }
         router.push('/tip');
         return;
       }

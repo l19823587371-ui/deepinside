@@ -24,38 +24,58 @@ export default function Report() {
       }
     }
     
-    // 关键：从 URL 获取故事
+    // 获取故事：优先从 URL，然后从 localStorage
+    let finalStory = '';
+    
     if (story && typeof story === 'string') {
-      console.log('Report - 从 URL 获取故事:', story);
-      setOriginalStory(story);
-      // 同时存到 localStorage 作为备份
-      localStorage.setItem('deepinside_original_story', story);
-    } else {
-      // 如果 URL 没有，尝试从 localStorage 读取
+      finalStory = story;
+      console.log('Report - 从 URL 获取故事:', finalStory);
+    } else if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('deepinside_original_story');
       if (saved) {
-        console.log('Report - 从 localStorage 获取故事:', saved);
-        setOriginalStory(saved);
-      } else {
-        console.warn('Report - 没有找到故事');
+        finalStory = saved;
+        console.log('Report - 从 localStorage 获取故事:', finalStory);
+      }
+    }
+    
+    if (finalStory) {
+      setOriginalStory(finalStory);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('deepinside_original_story', finalStory);
       }
     }
   }, [router.query]);
 
   const handleUnlock = () => {
-    console.log('Report - 解锁深度版，当前故事:', originalStory);
+    // 尝试从多个来源获取故事
+    let story = originalStory;
     
-    if (!originalStory) {
-      alert('未找到你的故事，请返回首页重新生成免费信');
-      return;
+    if (!story && typeof window !== 'undefined') {
+      // 从 localStorage 读取
+      story = localStorage.getItem('deepinside_original_story') || '';
     }
     
-    // 存到 localStorage
-    localStorage.setItem('deepinside_original_story', originalStory);
+    if (!story && typeof window !== 'undefined') {
+      // 从 URL 参数读取
+      const urlParams = new URLSearchParams(window.location.search);
+      story = urlParams.get('story') || '';
+    }
+    
+    // 如果还是为空，弹窗让用户手动输入
+    if (!story) {
+      story = prompt('请粘贴你的故事：');
+      if (!story) {
+        alert('需要故事才能生成深度报告');
+        return;
+      }
+    }
+    
+    console.log('解锁深度版，故事:', story);
+    
+    localStorage.setItem('deepinside_original_story', story);
     localStorage.setItem('deepinside_free_letter', report?.letter || '');
     
-    // 通过 URL 传递故事到追问页
-    router.push(`/deep-questions/1?story=${encodeURIComponent(originalStory)}`);
+    router.push(`/deep-questions/1?story=${encodeURIComponent(story)}`);
   };
 
   if (!report) {

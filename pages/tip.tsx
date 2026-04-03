@@ -31,9 +31,11 @@ export default function Tip() {
       localStorage.setItem('deepinside_tip_amount', numAmount.toString());
     }
 
-    // 获取原始故事并进入深度版
+    // 获取原始故事
     const story = localStorage.getItem('deepinside_original_story');
+    
     if (story) {
+      // 直接跳转到追问页，并传递故事
       router.push(`/deep-questions/1?story=${encodeURIComponent(story)}`);
     } else {
       alert('未找到你的故事，请返回首页重新生成免费信');
