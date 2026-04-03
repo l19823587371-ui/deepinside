@@ -63,8 +63,10 @@ export default function Report() {
     
     // 如果还是为空，弹窗让用户手动输入
     if (!story) {
-      story = prompt('请粘贴你的故事：');
-      if (!story) {
+      const userInput = prompt('请粘贴你的故事：');
+      if (userInput && userInput.trim()) {
+        story = userInput.trim();
+      } else {
         alert('需要故事才能生成深度报告');
         return;
       }
