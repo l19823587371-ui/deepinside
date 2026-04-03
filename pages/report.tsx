@@ -14,7 +14,7 @@ export default function Report() {
   useEffect(() => {
     const { data, story } = router.query;
     
-    console.log('Report 页面 - URL 参数:', { data: !!data, story });
+    console.log('Report - URL 参数:', { data: !!data, story });
     
     if (data && typeof data === 'string') {
       try {
@@ -24,45 +24,37 @@ export default function Report() {
       }
     }
     
-    // 获取故事：优先从 URL，然后从 localStorage
-    let finalStory = '';
-    
+    // 关键：从 URL 获取故事
     if (story && typeof story === 'string') {
-      finalStory = story;
-      console.log('从 URL 获取故事:', finalStory);
-    } else if (typeof window !== 'undefined') {
+      console.log('Report - 从 URL 获取故事:', story);
+      setOriginalStory(story);
+      // 同时存到 localStorage 作为备份
+      localStorage.setItem('deepinside_original_story', story);
+    } else {
+      // 如果 URL 没有，尝试从 localStorage 读取
       const saved = localStorage.getItem('deepinside_original_story');
       if (saved) {
-        finalStory = saved;
-        console.log('从 localStorage 获取故事:', finalStory);
+        console.log('Report - 从 localStorage 获取故事:', saved);
+        setOriginalStory(saved);
+      } else {
+        console.warn('Report - 没有找到故事');
       }
-    }
-    
-    if (finalStory) {
-      setOriginalStory(finalStory);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('deepinside_original_story', finalStory);
-        console.log('已保存故事到 localStorage');
-      }
-    } else {
-      console.warn('没有找到故事');
     }
   }, [router.query]);
 
   const handleUnlock = () => {
-    console.log('解锁深度版，当前故事:', originalStory);
+    console.log('Report - 解锁深度版，当前故事:', originalStory);
     
     if (!originalStory) {
       alert('未找到你的故事，请返回首页重新生成免费信');
       return;
     }
     
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('deepinside_free_letter', report?.letter || '');
-      localStorage.setItem('deepinside_original_story', originalStory);
-    }
+    // 存到 localStorage
+    localStorage.setItem('deepinside_original_story', originalStory);
+    localStorage.setItem('deepinside_free_letter', report?.letter || '');
     
-    // ✅ 关键修复：通过 URL 传递故事，解决手机端跨设备问题
+    // 通过 URL 传递故事到追问页
     router.push(`/deep-questions/1?story=${encodeURIComponent(originalStory)}`);
   };
 
