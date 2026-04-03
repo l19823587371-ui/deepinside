@@ -25,10 +25,8 @@ export default function LoveInput() {
       return;
     }
     
-    // ✅ 保存故事到 localStorage
     if (typeof window !== 'undefined') {
       localStorage.setItem('deepinside_original_story', formData.story);
-      console.log('已保存故事:', formData.story.slice(0, 50));
     }
     
     setLoading(true);
