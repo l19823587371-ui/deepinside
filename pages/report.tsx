@@ -12,7 +12,9 @@ export default function Report() {
   const [originalStory, setOriginalStory] = useState('');
 
   useEffect(() => {
-    const { data } = router.query;
+    const { data, story } = router.query;
+    
+    console.log('Report 页面 - URL 参数:', { data: !!data, story });
     
     if (data && typeof data === 'string') {
       try {
@@ -22,16 +24,34 @@ export default function Report() {
       }
     }
     
-    // 从 localStorage 读取故事
-    if (typeof window !== 'undefined') {
-      const story = localStorage.getItem('deepinside_original_story');
-      if (story) {
-        setOriginalStory(story);
+    // 获取故事：优先从 URL，然后从 localStorage
+    let finalStory = '';
+    
+    if (story && typeof story === 'string') {
+      finalStory = story;
+      console.log('从 URL 获取故事:', finalStory);
+    } else if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('deepinside_original_story');
+      if (saved) {
+        finalStory = saved;
+        console.log('从 localStorage 获取故事:', finalStory);
       }
+    }
+    
+    if (finalStory) {
+      setOriginalStory(finalStory);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('deepinside_original_story', finalStory);
+        console.log('已保存故事到 localStorage');
+      }
+    } else {
+      console.warn('没有找到故事');
     }
   }, [router.query]);
 
   const handleUnlock = () => {
+    console.log('解锁深度版，当前故事:', originalStory);
+    
     if (!originalStory) {
       alert('未找到你的故事，请返回首页重新生成免费信');
       return;
@@ -39,8 +59,10 @@ export default function Report() {
     
     if (typeof window !== 'undefined') {
       localStorage.setItem('deepinside_free_letter', report?.letter || '');
+      localStorage.setItem('deepinside_original_story', originalStory);
     }
     
+    // ✅ 关键修复：通过 URL 传递故事，解决手机端跨设备问题
     router.push(`/deep-questions/1?story=${encodeURIComponent(originalStory)}`);
   };
 

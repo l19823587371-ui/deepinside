@@ -18,6 +18,8 @@ export default function Question1() {
     }
 
     const { story } = router.query;
+    console.log('追问1 - 收到的 story:', story);
+    
     if (story && typeof story === 'string') {
       if (typeof window !== 'undefined') {
         localStorage.setItem('deepinside_original_story', story);
