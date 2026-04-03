@@ -11,31 +11,13 @@ export default function Question3() {
   const [answer2, setAnswer2] = useState('');
 
   useEffect(() => {
-    // 检查是否已打赏
-    if (typeof window !== 'undefined') {
-      const tipped = localStorage.getItem('deepinside_tipped');
-      if (!tipped) {
-        alert('请先打赏支持，再解锁深度报告 ☕');
-        router.push('/tip');
-        return;
-      }
+    const story = localStorage.getItem('deepinside_original_story');
+    if (story) {
+      setOriginalStory(story);
     }
-
-    if (typeof window !== 'undefined') {
-      const story = localStorage.getItem('deepinside_original_story');
-      if (story) {
-        setOriginalStory(story);
-        console.log('追问3 - 已加载故事:', story.slice(0, 50));
-      } else {
-        console.error('追问3 - 没有找到故事');
-        alert('未找到你的故事，请返回首页重新生成免费信');
-        router.push('/');
-      }
-      
-      setAnswer1(localStorage.getItem('deep_answer1') || '');
-      setAnswer2(localStorage.getItem('deep_answer2') || '');
-    }
-  }, [router]);
+    setAnswer1(localStorage.getItem('deep_answer1') || '');
+    setAnswer2(localStorage.getItem('deep_answer2') || '');
+  }, []);
 
   const handleGenerate = async () => {
     if (!originalStory) {
@@ -46,13 +28,6 @@ export default function Question3() {
       alert('请回答第三个问题');
       return;
     }
-    
-    console.log('发送数据:', {
-      originalStory: originalStory.slice(0, 50),
-      answer1: answer1.slice(0, 50),
-      answer2: answer2.slice(0, 50),
-      answer3: answer.slice(0, 50)
-    });
     
     setLoading(true);
 
@@ -70,7 +45,6 @@ export default function Question3() {
     const data = await res.json();
     
     if (!res.ok) {
-      console.error('API 错误:', data);
       alert(`生成失败: ${data.error}`);
       setLoading(false);
       return;

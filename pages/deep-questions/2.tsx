@@ -1,31 +1,17 @@
 import { useRouter } from 'next/router';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Navbar from '../../components/Navbar';
 
 export default function Question2() {
   const router = useRouter();
   const [answer, setAnswer] = useState('');
 
-  useEffect(() => {
-    // 检查是否已打赏
-    if (typeof window !== 'undefined') {
-      const tipped = localStorage.getItem('deepinside_tipped');
-      if (!tipped) {
-        alert('请先打赏支持，再解锁深度报告 ☕');
-        router.push('/tip');
-        return;
-      }
-    }
-  }, [router]);
-
   const handleNext = () => {
     if (!answer.trim()) {
       alert('请回答这个问题');
       return;
     }
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('deep_answer2', answer);
-    }
+    localStorage.setItem('deep_answer2', answer);
     router.push('/deep-questions/3');
   };
 
